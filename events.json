@@ -1,9 +1,0 @@
-[
-  {
-    "eventId": "E-2",
-    "eventTime": "2026-01-13T05:00:00Z",
-    "machineId": "M-001",
-    "durationMs": 1000,
-    "defectCount": 1
-  }
-]
