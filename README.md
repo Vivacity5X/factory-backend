@@ -272,9 +272,10 @@ Tests are written with **JUnit 5** and focus on correctness and concurrency safe
 ## ✅ Quick Output Check
 ### Batch Ingestion
 ```bash
-curl -X POST http://localhost:8080/events/batch \
-  -H "Content-Type: application/json" \
+curl.exe -X POST http://localhost:8080/events/batch `
+  -H "Content-Type: application/json" `
   --data-binary "@events_1000.json"
+
 ```
 
 ### Fetch Stats
