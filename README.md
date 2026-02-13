@@ -1,6 +1,6 @@
-# 🚀 Event Ingestion & Analytics System
+#  Event Ingestion & Analytics System
 
-## 📌 Overview
+##  Overview
 
 This project implements a backend system for **ingesting and analyzing machine-generated events**.  
 It is engineered to handle unreliable, duplicate, and concurrent submissions while producing deterministic analytics across configurable time windows.
@@ -15,7 +15,7 @@ The implementation emphasizes:
 
 ---
 
-## 🎯 Problem Statement
+##  Problem Statement
 
 Machines — not humans — send events to the backend. This introduces several real-world challenges:
 
@@ -33,7 +33,7 @@ Machines — not humans — send events to the backend. This introduces several 
 
 ---
 
-## 🧠 Key Design Decisions
+##  Key Design Decisions
 
 ### 1️⃣ In-Memory, Thread-Safe Storage
 - Events are stored using `ConcurrentHashMap`
@@ -81,7 +81,7 @@ Rejected events:
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ![System Architecture](https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd)
 
@@ -163,7 +163,7 @@ Clients &rarr Controllers &rarr Service Layer &rarr Event Store &rarr Analytics 
 
 ---
 
-## 🚀 APIs
+##  APIs
 
 ---
 
@@ -184,7 +184,9 @@ Accepts a batch of machine events.
     "defectCount": 1
   }
 ]
-
+```
+#### Response
+```json
 {
   "accepted": 1,
   "deduped": 0,
@@ -253,7 +255,7 @@ Tests are written with **JUnit 5** and focus on correctness and concurrency safe
 
 ---
 
-## 🛠️ Running Locally
+##  Running Locally
 
 ### Requirements
 - Java **17+**
@@ -264,9 +266,9 @@ Tests are written with **JUnit 5** and focus on correctness and concurrency safe
 ```
 
 ## Server runs at:
-
+```bash
 [http://localhost:8080](http://localhost:8080)
-
+```
 ## ✅ Quick Output Check
 ### Batch Ingestion
 ```bash
@@ -280,7 +282,7 @@ curl -X POST http://localhost:8080/events/batch \
 curl "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z"
 ```
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 - Persistent database storage
 - Distributed ingestion
 - Kafka / messaging systems
