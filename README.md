@@ -1,108 +1,180 @@
-# Event Ingestion & Analytics System
+# 🚀 Event Ingestion & Analytics System
 
 ## 📌 Overview
 
-This project implements a backend system for ingesting and analyzing machine-generated events.
-The system is designed to handle unreliable, duplicate, and concurrent event submissions while
-providing deterministic analytics over time windows.
+This project implements a backend system for **ingesting and analyzing machine-generated events**.  
+It is engineered to handle unreliable, duplicate, and concurrent submissions while producing deterministic analytics across configurable time windows.
 
-The implementation strictly follows the assignment specification, with a focus on:
-- correctness
-- thread safety
-- clear design
-- honest performance evaluation
+The implementation emphasizes:
+
+- ✅ Correctness  
+- ✅ Thread safety  
+- ✅ Clean architecture  
+- ✅ Deterministic behavior  
+- ✅ Honest performance evaluation  
 
 ---
 
 ## 🎯 Problem Statement
 
-Machines (not humans) send events to the backend:
+Machines — not humans — send events to the backend. This introduces several real-world challenges:
+
 - Events may arrive multiple times (duplicates)
 - Events may arrive out of order
 - Multiple machines may send events concurrently
 - Client-provided timestamps cannot be fully trusted
 
-What this system does:
-- Ingest events safely in batches
-- Deduplicate and reconcile updates
-- Reject invalid data
-- Provide analytics via a stats API
+### ✅ What This System Guarantees
+
+- Safe batch ingestion  
+- Deterministic deduplication  
+- Early validation & rejection of invalid data  
+- Reliable analytics through a stats API  
 
 ---
 
 ## 🧠 Key Design Decisions
 
+### 1️⃣ In-Memory, Thread-Safe Storage
+- Events are stored using `ConcurrentHashMap`
+- Atomic updates via `ConcurrentHashMap.compute()`
+- **No global locks** → high concurrency
 
+---
 
-### 1 In-Memory, Thread-Safe Storage
-- Events are stored in memory using `ConcurrentHashMap`
-- Atomic updates are implemented using `ConcurrentHashMap.compute()`
-- No global locks are used
+### 2️⃣ Deterministic Deduplication
+- `eventId` acts as the identity key
 
-### 2 Deterministic Deduplication
-- `eventId` is the identity key
-- Same `eventId` + same payload → deduplicated
-- Same `eventId` + different payload → updated
-- Older updates are ignored using backend-generated `receivedTime`
+| Scenario | Behavior |
+|--------|------------|
+| Same `eventId` + same payload | Deduplicated |
+| Same `eventId` + different payload | Updated |
+| Older update | Ignored |
 
-### 3 Time Handling
-- `eventTime` is used for analytics
-- `receivedTime` is used only for conflict resolution
-- All timestamps use UTC (`Instant`)
+Conflict resolution uses **backend-generated `receivedTime`**.
 
-### 4 Validation Strategy
-Invalid events are rejected early:
-- `durationMs < 0` or `durationMs > 6 hours`
-- `eventTime` more than 15 minutes in the future
+---
+
+### 3️⃣ Time Handling Strategy
+
+| Field | Purpose |
+|--------|------------|
+| `eventTime` | Used for analytics |
+| `receivedTime` | Used for conflict resolution |
+
+All timestamps use **UTC (`Instant`)** for consistency.
+
+---
+
+### 4️⃣ Validation Strategy
+
+Invalid events are rejected immediately if:
+
+- `durationMs < 0`
+- `durationMs > 6 hours`
+- `eventTime` is more than **15 minutes in the future**
 
 Rejected events:
-- Do not affect system state
-- Return structured rejection reasons
+
+- ❌ Do NOT affect system state  
+- ✅ Return structured rejection reasons  
 
 ---
 
 ## 🏗️ Architecture
 
-<img width="1024" height="1536" alt=" Image Feb 13, 2026, 11_21_44 PM" src="https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd" />
+![System Architecture](https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd)
+
+### Architectural Style
+Layered, **stateless Spring Boot architecture** designed for horizontal scalability.
+
+**Flow:**
+
+Clients &rarr Controllers &rarr Service Layer &rarr Event Store &rarr Analytics &rarr Responses
 
 
-Controller
-↓
-Service (validation + business logic)
-↓
-Thread-safe Store (ConcurrentHashMap)
-↓
-Analytics (eventTime-based)
+### Core Components
 
+**Client Layer**
+- curl / CLI  
+- Postman  
+- Web / React  
 
-- Controllers are thin (HTTP only)
-- Services own business logic
-- Store guarantees atomicity
+⬇ **HTTP REST**
+
+**API Layer — REST Controllers**
+- Request parsing  
+- HTTP status handling  
+- Delegation  
+
+⬇  
+
+**Service Layer — Core Brain**
+- Validation  
+- Deduplication  
+- Batch ingestion  
+- Concurrency-safe processing  
+
+👉 *Stateless Service – Horizontally Scalable*
+
+⬇  
+
+**Event Store**
+  *ConcurrentHashMap<EventId, Event>*
+  - Atomic writes  
+- Lock-free design  
+
+⬇  
+
+**Analytics Engine**
+- Machine filtering  
+- Time-window queries  
+- Event aggregation  
+- Defect rate calculation  
+- Health status derivation  
+
+⬇  
+
+**Response Layer**
+- HTTP JSON responses  
+- `BatchResult`  
+- `MachineStats`
 
 ---
 
 ## 📂 Project Structure
 
-src/main/java/com/example/factory
-│
-├── controller # REST APIs
-├── service # Business logic
-├── store # Thread-safe in-memory storage
-├── model # Internal domain models
-├── dto # API contracts
-├── exception # Business exceptions
-└── FactoryBackendApplication.java
+```bash
+.
+└── src
+    └── main
+        └── java
+            └── com
+                └── example
+                    └── factory
+                        ├── controller        # REST API endpoints
+                        ├── service           # Core business logic
+                        ├── store             # Thread-safe in-memory storage
+                        ├── model             # Domain entities
+                        ├── dto               # Request/Response objects
+                        ├── exception         # Custom exceptions & handlers
+                        └── FactoryBackendApplication.java   # Spring Boot entry point
+```
 
 ---
 
 ## 🚀 APIs
 
-### 1️⃣ Batch Ingestion API
+---
 
-**POST `/events/batch`**
+### ✅ Batch Ingestion API
+
+### `POST /events/batch`
+
 Accepts a batch of machine events.
 
-Example request:
+#### Example Request
+```json
 [
   {
     "eventId": "E-1",
@@ -112,25 +184,34 @@ Example request:
     "defectCount": 1
   }
 ]
-Example response:
+
 {
   "accepted": 1,
   "deduped": 0,
   "rejected": 0,
   "rejections": []
 }
-2️⃣ Stats API
-GET /stats
-Query parameters:
-machineId
-start (inclusive)
-end (exclusive)
+```
 
-Example:
+### ✅ Stats API
 
+### `GET /stats`
+
+#### Query Parameters
+
+| Parameter | Description |
+|------------|--------------|
+| `machineId` | Machine identifier |
+| `start` | Inclusive start time |
+| `end` | Exclusive end time |
+
+#### Example
+```bash
 GET /stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z
-Example response:
+```
 
+#### Example Response
+```json
 {
   "machineId": "M-001",
   "start": "2026-01-13T00:00:00Z",
@@ -140,68 +221,79 @@ Example response:
   "avgDefectRate": 0.0416,
   "status": "Healthy"
 }
-Machine status is derived using an average defect-rate threshold of 2 defects/hour.
+```
+## 🧪 Testing Strategy
 
-🧪 Testing Strategy
-Tests are written using JUnit 5 and focus on correctness and safety.
+Tests are written with **JUnit 5** and focus on correctness and concurrency safety.
 
-Covered scenarios:
-Valid ingestion
-Deduplication
-Validation failures
-Concurrent ingestion
-Event-time window filtering
-Ignoring unknown defects (-1)
+### Covered Scenarios
+- ✅ Valid ingestion  
+- ✅ Deduplication  
+- ✅ Validation failures  
+- ✅ Concurrent ingestion  
+- ✅ Event-time filtering  
+- ✅ Ignoring unknown defects (-1)  
 
-Run tests:
-.\mvnw test
+### Run Tests
+```bash
+./mvnw test
+```
+✔ **BUILD SUCCESS**
 
-All tests pass:
-BUILD SUCCESS
+---
 
-⚡ Performance
-In-memory storage
-O(1) average access
-No blocking global locks
-Batch processing optimized for up to 1000 events
-Detailed benchmark results are documented in BENCHMARK.md.
+## ⚡ Performance Characteristics
 
-🛠️ How to Run Locally
-Requirements
-Java 17+
+- In-memory storage  
+- **O(1)** average access  
+- No blocking global locks  
+- Batch optimized for ~1000 events  
 
-Run application
-mvnw spring-boot:run
-Application runs at:
-http://localhost:8080
+📊 Detailed benchmarks → `BENCHMARK.md`
 
-## OUTPUT CHECK
-1.open terminal in project folder
-2.make sure app is running
-3.enter this cmd :
-curl.exe -X POST http://localhost:8080/events/batch `
-  -H "Content-Type: application/json" `
---data-binary "@events_1000.json"
+---
 
-4.For stats:
-curl.exe "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z"
+## 🛠️ Running Locally
 
+### Requirements
+- Java **17+**
 
+### Start the Application
+```bash
+./mvnw spring-boot:run
+```
 
-🔮 Future
+## Server runs at:
 
+[http://localhost:8080](http://localhost:8080)
 
-Persistent storage (database)
-Distributed ingestion
-Messaging systems (Kafka, queues)
-Authentication / authorization
+## ✅ Quick Output Check
+### Batch Ingestion
+```bash
+curl -X POST http://localhost:8080/events/batch \
+  -H "Content-Type: application/json" \
+  --data-binary "@events_1000.json"
+```
 
+### Fetch Stats
+```bash
+curl "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z"
+```
 
-✅ Final Notes
-The system prioritizes correctness and clarity
-Designed for machine-generated traffic
-All design decisions are test-verified and explainable
+## 🔮 Future Enhancements
+- Persistent database storage
+- Distributed ingestion
+- Kafka / messaging systems
+- Authentication & authorization
+- Horizontal scaling
 
-✨ Author
-Chaitanya
-Backend Intern Assignment – 2026
+## ✅ Final Notes
+This system prioritizes:
+- Clarity over cleverness
+- Deterministic behavior
+- Production-style design
+- Explainable engineering decisions
+- Built specifically for machine-generated traffic patterns.
+
+## ✨ Author
+Chaitanya — 2026
