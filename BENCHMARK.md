@@ -3,7 +3,8 @@
 
 ## 📌 Objective
 
-To verify that the system satisfies the assignment requirement:
+This project implements a backend system for **ingesting and analyzing machine-generated events**.  
+It is engineered to handle unreliable, duplicate, and concurrent submissions while producing deterministic analytics across configurable time windows.
 
 > Batch ingestion of 1000 events should complete in under 1 second.
 
@@ -32,22 +33,23 @@ Dataset
 - Payload structure is consistent across events
 
 Application Startup
-
+```bash
 mvnw spring-boot:run
 Server runs at:
-http://localhost:8080
 
+http://localhost:8080
+```
 🚀 Benchmark Execution
 
 The benchmark measures end-to-end latency for ingesting a single batch of 1000 events
 in one HTTP request.
 
 Command used:
-
+```bash
 curl.exe -X POST http://localhost:8080/events/batch `
   -H "Content-Type: application/json" `
 --data-binary "@events_1000.json"
-
+```
 This measures:
 
 HTTP request handling
