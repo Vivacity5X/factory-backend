@@ -1,4 +1,4 @@
-# Backend Intern Assignment – Event Ingestion & Analytics System
+# Event Ingestion & Analytics System
 
 ## 📌 Overview
 
@@ -22,7 +22,7 @@ Machines (not humans) send events to the backend:
 - Multiple machines may send events concurrently
 - Client-provided timestamps cannot be fully trusted
 
-The backend must:
+What this system does:
 - Ingest events safely in batches
 - Deduplicate and reconcile updates
 - Reject invalid data
@@ -32,27 +32,25 @@ The backend must:
 
 ## 🧠 Key Design Decisions
 
-### 1️⃣ Spec-Driven Design
-- The assignment document is treated as the system specification
-- No assumptions or extra features were added beyond the scope
 
-### 2️⃣ In-Memory, Thread-Safe Storage
+
+### 1 In-Memory, Thread-Safe Storage
 - Events are stored in memory using `ConcurrentHashMap`
 - Atomic updates are implemented using `ConcurrentHashMap.compute()`
 - No global locks are used
 
-### 3️⃣ Deterministic Deduplication
+### 2 Deterministic Deduplication
 - `eventId` is the identity key
 - Same `eventId` + same payload → deduplicated
 - Same `eventId` + different payload → updated
 - Older updates are ignored using backend-generated `receivedTime`
 
-### 4️⃣ Time Handling
+### 3 Time Handling
 - `eventTime` is used for analytics
 - `receivedTime` is used only for conflict resolution
 - All timestamps use UTC (`Instant`)
 
-### 5️⃣ Validation Strategy
+### 4 Validation Strategy
 Invalid events are rejected early:
 - `durationMs < 0` or `durationMs > 6 hours`
 - `eventTime` more than 15 minutes in the future
@@ -187,14 +185,14 @@ curl.exe "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z
 
 
 
-🔮 Out of Scope (Intentional)
-The following were intentionally not implemented:
+🔮 Future
+
 
 Persistent storage (database)
 Distributed ingestion
 Messaging systems (Kafka, queues)
 Authentication / authorization
-These are outside the assignment scope.
+
 
 ✅ Final Notes
 The system prioritizes correctness and clarity
