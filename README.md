@@ -90,7 +90,7 @@ Layered, **stateless Spring Boot architecture** designed for horizontal scalabil
 
 **Flow:**
 
-Clients &rarr Controllers &rarr Service Layer &rarr Event Store &rarr Analytics &rarr Responses
+Clients → Controllers → Service Layer → Event Store → Analytics → Responses
 
 
 ### Core Components
@@ -266,9 +266,9 @@ Tests are written with **JUnit 5** and focus on correctness and concurrency safe
 ```
 
 ## Server runs at:
-```bash
+
 [http://localhost:8080](http://localhost:8080)
-```
+
 ## ✅ Quick Output Check
 ### Batch Ingestion
 ```bash
