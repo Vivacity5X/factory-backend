@@ -63,6 +63,9 @@ Rejected events:
 
 ## 🏗️ Architecture
 
+<img width="1024" height="1536" alt=" Image Feb 13, 2026, 11_21_44 PM" src="https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd" />
+
+
 Controller
 ↓
 Service (validation + business logic)
