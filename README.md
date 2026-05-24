@@ -1,5 +1,4 @@
-<img width="1536" height="1024" alt="ChatGPT Image May 24, 2026, 03_43_24 PM" src="https://github.com/user-attachments/assets/52260037-b71b-4f03-b8d2-13fc6da306d5" />
-<img width="1536" height="1024" alt="ChatGPT Image May 24, 2026, 03_43_24 PM" src="https://github.com/user-attachments/assets/acfa79fd-b160-436b-be13-226adf91a63b" />
+
 # Factory Backend Event Ingestion & Analytics System
 
 ##  Overview
@@ -53,7 +52,7 @@ The system emphasizes:
 
 # 🏗 Architecture
 
-![System Architecture](https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd)
+<img width="1536" height="1024" alt="ChatGPT Image May 24, 2026, 03_43_24 PM" src="https://github.com/user-attachments/assets/acfa79fd-b160-436b-be13-226adf91a63b" />
 
 ## Architectural Style
 
