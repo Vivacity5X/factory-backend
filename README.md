@@ -1,179 +1,240 @@
-#  Event Ingestion & Analytics System
+# 🚀 Factory Backend Event Ingestion & Analytics System
 
-##  Overview
+## 📌 Overview
 
-This project implements a backend system for **ingesting and analyzing machine-generated events**.  
-It is engineered to handle unreliable, duplicate, and concurrent submissions while producing deterministic analytics across configurable time windows.
+This project implements a production-inspired backend system for ingesting, validating, storing, and analyzing machine-generated telemetry events.
 
-The implementation emphasizes:
+The system is designed to simulate real-world industrial/IoT event pipelines where multiple machines continuously emit operational data.
 
-- ✅ Correctness  
-- ✅ Thread safety  
-- ✅ Clean architecture  
-- ✅ Deterministic behavior  
-- ✅ Honest performance evaluation  
+It supports:
 
----
-
-##  Problem Statement
-
-Machines — not humans — send events to the backend. This introduces several real-world challenges:
-
-- Events may arrive multiple times (duplicates)
-- Events may arrive out of order
-- Multiple machines may send events concurrently
-- Client-provided timestamps cannot be fully trusted
-
-### ✅ What This System Guarantees
-
-- Safe batch ingestion  
-- Deterministic deduplication  
-- Early validation & rejection of invalid data  
-- Reliable analytics through a stats API  
+* ✅ Batch event ingestion
+* ✅ Deterministic deduplication
+* ✅ Concurrent processing
+* ✅ MySQL persistence
+* ✅ Time-window analytics
+* ✅ Swagger/OpenAPI documentation
+* ✅ Realistic telemetry simulation
+* ✅ Unit & concurrency testing
 
 ---
 
-##  Key Design Decisions
+# 🏭 Real-World Use Case
 
-### 1️⃣ In-Memory, Thread-Safe Storage
-- Events are stored using `ConcurrentHashMap`
-- Atomic updates via `ConcurrentHashMap.compute()`
-- **No global locks** → high concurrency
+Imagine a factory floor containing multiple industrial machines.
 
----
+Each machine continuously sends telemetry such as:
 
-### 2️⃣ Deterministic Deduplication
-- `eventId` acts as the identity key
+* Production duration
+* Defect counts
+* Operational timestamps
+* Machine identifiers
 
-| Scenario | Behavior |
-|--------|------------|
-| Same `eventId` + same payload | Deduplicated |
-| Same `eventId` + different payload | Updated |
-| Older update | Ignored |
+This backend system ingests those machine events safely, prevents duplicates during concurrent submissions, persists telemetry into MySQL, and computes analytics to monitor machine health.
 
-Conflict resolution uses **backend-generated `receivedTime`**.
+The architecture models a production-inspired backend system for handling large volumes of machine-generated factory events and analytics.
 
 ---
 
-### 3️⃣ Time Handling Strategy
+# 🧠 Key Engineering Goals
 
-| Field | Purpose |
-|--------|------------|
-| `eventTime` | Used for analytics |
-| `receivedTime` | Used for conflict resolution |
+The system emphasizes:
 
-All timestamps use **UTC (`Instant`)** for consistency.
-
----
-
-### 4️⃣ Validation Strategy
-
-Invalid events are rejected immediately if:
-
-- `durationMs < 0`
-- `durationMs > 6 hours`
-- `eventTime` is more than **15 minutes in the future**
-
-Rejected events:
-
-- ❌ Do NOT affect system state  
-- ✅ Return structured rejection reasons  
+* Thread safety
+* Deterministic behavior
+* Clean layered architecture
+* Production-style API design
+* Explainable engineering decisions
+* Reliable analytics
 
 ---
 
-##  Architecture
+# 🏗️ Architecture
 
 ![System Architecture](https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd)
 
-### Architectural Style
-Layered, **stateless Spring Boot architecture** designed for horizontal scalability.
+## Architectural Style
 
-**Flow:**
+Layered, stateless Spring Boot backend architecture.
 
-Clients → Controllers → Service Layer → Event Store → Analytics → Responses
+### Flow
 
-
-### Core Components
-
-**Client Layer**
-- curl / CLI  
-- Postman  
-- Web / React  
-
-⬇ **HTTP REST**
-
-**API Layer — REST Controllers**
-- Request parsing  
-- HTTP status handling  
-- Delegation  
-
-⬇  
-
-**Service Layer — Core Brain**
-- Validation  
-- Deduplication  
-- Batch ingestion  
-- Concurrency-safe processing  
-
-👉 *Stateless Service – Horizontally Scalable*
-
-⬇  
-
-**Event Store**
-  *ConcurrentHashMap<EventId, Event>*
-  - Atomic writes  
-- Lock-free design  
-
-⬇  
-
-**Analytics Engine**
-- Machine filtering  
-- Time-window queries  
-- Event aggregation  
-- Defect rate calculation  
-- Health status derivation  
-
-⬇  
-
-**Response Layer**
-- HTTP JSON responses  
-- `BatchResult`  
-- `MachineStats`
+Clients → Controllers → Services → Storage → Analytics → JSON Responses
 
 ---
 
-## 📂 Project Structure
+## Core Components
+
+### 🔹 Client Layer
+
+Clients interact through:
+
+* curl
+* Postman
+* Swagger UI
+* Future React frontend
+
+---
+
+### 🔹 API Layer — REST Controllers
+
+Responsibilities:
+
+* HTTP request parsing
+* Response generation
+* Delegation to services
+* Status handling
+
+---
+
+### 🔹 Service Layer — Core Business Logic
+
+Responsibilities:
+
+* Event validation
+* Deduplication
+* Batch ingestion
+* Concurrency-safe operations
+* Analytics computation
+
+The service layer is intentionally stateless and horizontally scalable.
+
+---
+
+### 🔹 Persistence Layer
+
+Telemetry events are persisted using:
+
+* MySQL
+* Spring Data JPA
+* Hibernate ORM
+
+Repository-based querying supports efficient time-window analytics.
+
+---
+
+### 🔹 Event Store
+
+Concurrency-safe ingestion uses:
+
+```java
+ConcurrentHashMap<EventId, Event>
+```
+
+Features:
+
+* Atomic updates
+* Lock-free reads
+* Concurrent deduplication
+
+---
+
+### 🔹 Analytics Engine
+
+Computes:
+
+* Event counts
+* Defect totals
+* Average defect rate
+* Machine health status
+* Time-window filtered analytics
+
+---
+
+# ⚙️ Technical Stack
+
+| Category    | Technology                  |
+| ----------- | --------------------------- |
+| Backend     | Spring Boot                 |
+| Language    | Java 22                     |
+| Database    | MySQL                       |
+| ORM         | Spring Data JPA / Hibernate |
+| API Docs    | Swagger / OpenAPI           |
+| Testing     | JUnit 5 + Mockito           |
+| Build Tool  | Maven                       |
+| Concurrency | ConcurrentHashMap           |
+| Data Format | JSON                        |
+
+---
+
+# 📂 Project Structure
 
 ```bash
-.
-└── src
-    └── main
-        └── java
-            └── com
-                └── example
-                    └── factory
-                        ├── controller        # REST API endpoints
-                        ├── service           # Core business logic
-                        ├── store             # Thread-safe in-memory storage
-                        ├── model             # Domain entities
-                        ├── dto               # Request/Response objects
-                        ├── exception         # Custom exceptions & handlers
-                        └── FactoryBackendApplication.java   # Spring Boot entry point
+src
+├── main
+│   └── java/com/example/factory
+│       ├── controller
+│       ├── service
+│       ├── repository
+│       ├── store
+│       ├── model
+│       ├── dto
+│       ├── exception
+│       └── config
+│
+├── test
+│   └── java/com/example/factory
+│       ├── EventServiceTest
+│       └── EventGenerator
 ```
 
 ---
 
-##  APIs
+# 🔄 Event Processing Workflow
+
+## Batch Ingestion Flow
+
+1. Client submits batch events
+2. Controller receives request
+3. Service validates events
+4. Deduplication logic executes
+5. Accepted events persist into MySQL
+6. Analytics APIs query telemetry data
+7. JSON response returned
 
 ---
 
-### ✅ Batch Ingestion API
+# 🛡️ Validation Rules
+
+Events are rejected if:
+
+* `durationMs < 0`
+* `durationMs > 6 hours`
+* `eventTime` is more than 15 minutes in the future
+
+Rejected events:
+
+* ❌ Do not affect system state
+* ✅ Return structured rejection reasons
+
+---
+
+# 🔁 Deduplication Strategy
+
+`eventId` acts as the identity key.
+
+| Scenario                     | Behavior     |
+| ---------------------------- | ------------ |
+| Same eventId + same payload  | Deduplicated |
+| Same eventId + newer payload | Updated      |
+| Older update                 | Ignored      |
+
+Conflict resolution uses backend-generated `receivedTime`.
+
+---
+
+# 🌐 REST APIs
+
+---
+
+## ✅ Batch Ingestion API
 
 ### `POST /events/batch`
 
-Accepts a batch of machine events.
+Accepts a batch of telemetry events.
 
-#### Example Request
+### Example Request
+
 ```json
 [
   {
@@ -185,7 +246,9 @@ Accepts a batch of machine events.
   }
 ]
 ```
-#### Response
+
+### Example Response
+
 ```json
 {
   "accepted": 1,
@@ -195,108 +258,203 @@ Accepts a batch of machine events.
 }
 ```
 
-### ✅ Stats API
+---
+
+## ✅ Machine Analytics API
 
 ### `GET /stats`
 
-#### Query Parameters
+### Query Parameters
 
-| Parameter | Description |
-|------------|--------------|
-| `machineId` | Machine identifier |
-| `start` | Inclusive start time |
-| `end` | Exclusive end time |
+| Parameter | Description          |
+| --------- | -------------------- |
+| machineId | Machine identifier   |
+| start     | Inclusive start time |
+| end       | Exclusive end time   |
 
-#### Example
+### Example
+
 ```bash
 GET /stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z
 ```
 
-#### Example Response
+### Example Response
+
 ```json
 {
   "machineId": "M-001",
-  "start": "2026-01-13T00:00:00Z",
-  "end": "2026-01-14T00:00:00Z",
-  "eventsCount": 1,
-  "defectsCount": 1,
-  "avgDefectRate": 0.0416,
+  "eventsCount": 200,
+  "defectsCount": 20,
+  "avgDefectRate": 0.83,
   "status": "Healthy"
 }
 ```
-## 🧪 Testing Strategy
 
-Tests are written with **JUnit 5** and focus on correctness and concurrency safety.
+---
 
-### Covered Scenarios
-- ✅ Valid ingestion  
-- ✅ Deduplication  
-- ✅ Validation failures  
-- ✅ Concurrent ingestion  
-- ✅ Event-time filtering  
-- ✅ Ignoring unknown defects (-1)  
+# 📘 Swagger API Documentation
 
-### Run Tests
+Swagger/OpenAPI documentation is integrated for interactive API testing.
+
+## Swagger URL
+
+```bash
+http://localhost:8080/swagger-ui/index.html
+```
+
+Features:
+
+* Interactive API testing
+* Request/response schemas
+* Endpoint documentation
+* Faster integration debugging
+
+---
+
+# 🧪 Testing Strategy
+
+The project includes unit and concurrency tests using:
+
+* JUnit 5
+* Mockito
+
+## Covered Scenarios
+
+* ✅ Valid ingestion
+* ✅ Deduplication
+* ✅ Validation failures
+* ✅ Concurrent ingestion
+* ✅ Event-time filtering
+* ✅ Ignoring unknown defects
+* ✅ Analytics verification
+
+## Run Tests
+
 ```bash
 ./mvnw test
 ```
-✔ **BUILD SUCCESS**
+
+✔ BUILD SUCCESS
 
 ---
 
-## ⚡ Performance Characteristics
+# ⚡ Benchmarking & Telemetry Simulation
 
-- In-memory storage  
-- **O(1)** average access  
-- No blocking global locks  
-- Batch optimized for ~1000 events  
+A custom telemetry generator creates realistic industrial event traffic.
 
-📊 Detailed benchmarks → `BENCHMARK.md`
+Generated telemetry includes:
+
+* Multiple machines
+* Different timestamps
+* Variable durations
+* Randomized defect patterns
+
+## Generate Benchmark Events
+
+```bash
+java EventGenerator
+```
+
+This creates:
+
+```bash
+events_1000.json
+```
+
+used for batch ingestion benchmarking.
 
 ---
 
-##  Running Locally
+# 📈 Performance Characteristics
 
-### Requirements
-- Java **17+**
+* O(1) average in-memory access
+* Concurrent ingestion support
+* Batch optimized for ~1000 events
+* Lock-free event processing
+* Repository-backed analytics queries
 
-### Start the Application
+---
+
+# ▶️ Running Locally
+
+## Requirements
+
+* Java 17+
+* MySQL 8+
+* Maven
+
+---
+
+## Configure Database
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/factorydb
+spring.datasource.username=root
+spring.datasource.password=YOUR_PASSWORD
+```
+
+---
+
+## Start Application
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
-## Server runs at:
+Server runs at:
 
-[http://localhost:8080](http://localhost:8080)
-
-## ✅ Quick Output Check
-### Batch Ingestion
 ```bash
-curl.exe -X POST http://localhost:8080/events/batch `
-  -H "Content-Type: application/json" `
-  --data-binary "@events_1000.json"
-
+http://localhost:8080
 ```
 
-### Fetch Stats
+---
+
+# 🚀 Quick Demo Commands
+
+## Batch Ingestion
+
 ```bash
-curl "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2026-01-14T00:00:00Z"
+curl.exe -X POST http://localhost:8080/events/batch ^
+-H "Content-Type: application/json" ^
+--data-binary "@events_1000.json"
 ```
 
-##  Future Enhancements
-- Persistent database storage
-- Distributed ingestion
-- Kafka / messaging systems
-- Authentication & authorization
-- Horizontal scaling
+---
 
-## ✅ Final Notes
-This system prioritizes:
-- Clarity over cleverness
-- Deterministic behavior
-- Production-style design
-- Explainable engineering decisions
-- Built specifically for machine-generated traffic patterns.
+## Fetch Analytics
 
-## ✨ Author
-Chaitanya — 2026
+```bash
+curl.exe "http://localhost:8080/stats?machineId=M-001&start=2026-01-13T00:00:00Z&end=2027-01-14T00:00:00Z"
+```
+
+---
+
+# 🔮 Future Enhancements
+
+* Kafka-based streaming ingestion
+* Docker deployment
+* Kubernetes scaling
+* Alerting engine
+* Authentication & authorization
+* React monitoring dashboard
+* Distributed event processing
+
+---
+
+# 💡 Key Learning Outcomes
+
+This project helped explore:
+
+* Backend architecture design
+* Concurrent programming
+* REST API engineering
+* Batch event processing
+* Database persistence
+* Analytics computation
+* Production-inspired backend patterns
+
+---
+
+# 👨‍💻 Author
+
+**Chaitanya** — 2026
