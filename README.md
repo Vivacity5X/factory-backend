@@ -1,6 +1,6 @@
-# 🚀 Factory Backend Event Ingestion & Analytics System
+# Factory Backend Event Ingestion & Analytics System
 
-## 📌 Overview
+##  Overview
 
 This project implements a production-inspired backend system for ingesting, validating, storing, and analyzing machine-generated telemetry events.
 
@@ -19,7 +19,7 @@ It supports:
 
 ---
 
-# 🏭 Real-World Use Case
+#  Real-World Use Case
 
 Imagine a factory floor containing multiple industrial machines.
 
@@ -36,7 +36,7 @@ The architecture models a production-inspired backend system for handling large 
 
 ---
 
-# 🧠 Key Engineering Goals
+#  Key Engineering Goals
 
 The system emphasizes:
 
@@ -49,7 +49,7 @@ The system emphasizes:
 
 ---
 
-# 🏗️ Architecture
+# 🏗 Architecture
 
 ![System Architecture](https://github.com/user-attachments/assets/27355286-f9cd-47c6-a9f4-f59b7b4934dd)
 
@@ -157,7 +157,7 @@ Computes:
 
 ---
 
-# 📂 Project Structure
+#  Project Structure
 
 ```bash
 src
