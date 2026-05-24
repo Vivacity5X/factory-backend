@@ -5,14 +5,20 @@ import com.example.factory.dto.EventDTO;
 import java.time.Instant;
 import java.util.Objects;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+@Entity
 public class StoredEvent {
+    @Id
+    private  String eventId;
+    private  Instant eventTime;
+    private  String machineId;
+    private  long durationMs;
+    private  int defectCount;
+    private  Instant receivedTime;
 
-    private final String eventId;
-    private final Instant eventTime;
-    private final String machineId;
-    private final long durationMs;
-    private final int defectCount;
-    private final Instant receivedTime;
+    public StoredEvent() {
+    }
 
     public StoredEvent(EventDTO dto, Instant receivedTime) {
         this.eventId = dto.eventId();

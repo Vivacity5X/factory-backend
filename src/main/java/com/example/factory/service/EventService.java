@@ -14,6 +14,7 @@ import com.example.factory.model.StoredEvent;
 import java.time.Duration;
 import java.util.List;
 
+import com.example.factory.repository.StoredEventRepository;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,11 +24,14 @@ import java.util.List;
 public class EventService {
 
     private static final long MAX_DURATION_MS = 6L * 60 * 60 * 1000; // 6 hours
-
+    private final StoredEventRepository repository;
     private final EventStore store;
 
-    public EventService(EventStore store) {
+    public EventService(EventStore store,
+                        StoredEventRepository repository) {
+
         this.store = store;
+        this.repository = repository;
     }
 
     public BatchResponse ingest(List<EventDTO> events) {
@@ -45,7 +49,14 @@ public class EventService {
                 StoreResult result = store.upsert(event);
 
                 if (result == StoreResult.ACCEPTED) {
+
                     accepted++;
+
+                    StoredEvent storedEvent =
+                            new StoredEvent(event, Instant.now());
+
+                    repository.save(storedEvent);
+
                 } else if (result == StoreResult.DEDUPED) {
                     deduped++;
                 }
@@ -79,11 +90,12 @@ public class EventService {
     }
     public StatsResponse getStats(String machineId, Instant start, Instant end) {
 
-        List<StoredEvent> filteredEvents = store.all().stream()
-                .filter(e -> e.getMachineId().equals(machineId))
-                .filter(e -> !e.getEventTime().isBefore(start))
-                .filter(e -> e.getEventTime().isBefore(end))
-                .toList();
+        List<StoredEvent> filteredEvents =
+                repository.findByMachineIdAndEventTimeBetween(
+                        machineId,
+                        start,
+                        end
+                );
 
         long eventsCount = filteredEvents.size();
 

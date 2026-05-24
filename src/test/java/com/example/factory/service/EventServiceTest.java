@@ -1,6 +1,10 @@
 package com.example.factory.service;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+
 import com.example.factory.dto.EventDTO;
+import com.example.factory.model.StoredEvent;
 import com.example.factory.store.EventStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,16 +16,23 @@ import java.util.concurrent.Executors;
 
 import java.time.Instant;
 import java.util.List;
-
+import static org.mockito.Mockito.mock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.example.factory.repository.StoredEventRepository;
 class EventServiceTest {
 
     private EventService service;
+    private StoredEventRepository repository;
 
     @BeforeEach
     void setUp() {
-        service = new EventService(new EventStore());
+
+        repository = mock(StoredEventRepository.class);
+
+        service = new EventService(
+                new EventStore(),
+                repository
+        );
     }
 
     @Test
@@ -114,7 +125,18 @@ class EventServiceTest {
 
         latch.await();
         executor.shutdown();
-
+        when(repository.findByMachineIdAndEventTimeBetween(
+                any(),
+                any(),
+                any()
+        )).thenReturn(
+                List.of(
+                        new StoredEvent(
+                                event,
+                                Instant.now()
+                        )
+                )
+        );
         var stats = service.getStats(
                 "M-100",
                 Instant.now().minusSeconds(3600),
@@ -153,7 +175,17 @@ class EventServiceTest {
         );
 
         service.ingest(List.of(e1, e2, e3));
-
+        when(repository.findByMachineIdAndEventTimeBetween(
+                any(),
+                any(),
+                any()
+        )).thenReturn(
+                List.of(
+                        new StoredEvent(e1, Instant.now()),
+                        new StoredEvent(e2, Instant.now()),
+                        new StoredEvent(e3, Instant.now())
+                )
+        );
         var stats = service.getStats(
                 "M-STAT",
                 baseTime,
